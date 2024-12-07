@@ -1,0 +1,5 @@
+night = 2
+beatgame = false
+beat6 = false
+beat7 = false
+playnight = 0

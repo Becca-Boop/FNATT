@@ -15,8 +15,14 @@ public class AnimatronicSystem : MonoBehaviour
     [SerializeField] private float CoolDownTimer;
     [SerializeField] private int MinChanceToMove = 1;
     [SerializeField] private int MaxChanceToMove = 20;
-    [SerializeField] private int ThresholdToPass = 3;
-    [SerializeField] private int[] AggressionByHour;
+    [SerializeField] private int ThresholdToPass = 3;    
+    [SerializeField] private int[] AggressionNight1;
+    [SerializeField] private int[] AggressionNight2;
+    [SerializeField] private int[] AggressionNight3;
+    [SerializeField] private int[] AggressionNight4;
+    [SerializeField] private int[] AggressionNight5;
+    [SerializeField] private int[] AggressionNight6;
+    [SerializeField] private int[,] AggressionByHour = {{0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}, {0,0,0,0,0,0}};
     [SerializeField] private int MinAggAdd = 2;
     [SerializeField] private int MaxAggAdd = 5;
     [SerializeField] private int HoursChanged;
@@ -39,12 +45,45 @@ public class AnimatronicSystem : MonoBehaviour
     [SerializeField] public bool IsJumpscare;
     [SerializeField] public float RedLaughTime;
     [SerializeField] private CameraSystem CameraSystem;
+    [SerializeField] private int night;
 
     
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        for (int i = 0; i < 6; i++)
+        {
+            AggressionByHour[0,i] = AggressionNight1[i];
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            AggressionByHour[1,i] = AggressionNight2[i];
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            AggressionByHour[2,i] = AggressionNight3[i];
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            AggressionByHour[3,i] = AggressionNight4[i];
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            AggressionByHour[4,i] = AggressionNight5[i];
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            AggressionByHour[5,i] = AggressionNight6[i];
+        }
+        
+
+        if (MainManager.Instance != null)
+        {
+            night = MainManager.Instance.night;
+            ThresholdToPass = AggressionByHour[night,0];
+        }
+
         NMA = GetComponent<NavMeshAgent>();
         CameraStatic.SetActive(false);
         soundPlayed = false;
@@ -149,7 +188,23 @@ public class AnimatronicSystem : MonoBehaviour
                     }      
                     else
                     {
-                        CurrentTarget += 1;    
+                        if (CurrentTarget != 0 && CurrentTarget != Targets.Length-2)
+                        {
+                            float movechance = UnityEngine.Random.Range(1,4);
+                            if (movechance > 1)
+                            {
+                                CurrentTarget += 1; 
+                            }
+                            else
+                            {
+                                CurrentTarget -= 1; 
+                            }    
+                        }
+                        else
+                        {
+                            CurrentTarget += 1;
+                        }
+                                               
                         if (CurrentTarget == (Targets.Length-2))
                         {
                             CoolDownTimer = 15;  
@@ -217,16 +272,26 @@ public class AnimatronicSystem : MonoBehaviour
     }
 
     public void ChangeAggByHour(int hour)
-    {
-        if(HoursChanged != hour)
+    {     
+        if (night < 6)
         {
-            if (ThresholdToPass <= AggressionByHour[hour])
+            if(HoursChanged != hour && hour != 0 && hour != 12)
             {
-                ThresholdToPass = AggressionByHour[hour];  
-            }            
-            ThresholdToPass += UnityEngine.Random.Range(MinAggAdd, MaxAggAdd);
-            HoursChanged += 1;
-        }        
+                if (ThresholdToPass <= AggressionByHour[night, hour])
+                {
+                    ThresholdToPass = AggressionByHour[night, hour];  
+                }            
+                ThresholdToPass += UnityEngine.Random.Range(MinAggAdd, MaxAggAdd);
+                HoursChanged += 1;
+            }   
+        }
+        else
+        {
+            if (MainManager.Instance != null)
+            {
+                ThresholdToPass = MainManager.Instance.night7AI;
+            }
+        }
     }
 
     private void StageLightOn()
